@@ -3,17 +3,16 @@ import Home from "../pages/Home"
 import Login from "../pages/Login"
 import Register from "../pages/Register"
 import Profile from "../pages/Profile"
-import TopBar from '../components/TopBar'
+import Layout from '../Layout'
 
 export default function AppRoutes() {
     return (
         <BrowserRouter>
-            <TopBar />
             <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path='/login' element={<Login />} />
-                <Route path='/register' element={<Register />} />
-                <Route path='/profile' element={<Profile />} />
+                <Route path="/" element={<Layout><Home /></Layout>} />
+                <Route path='/login' element={<Layout><Login /></Layout>} />
+                <Route path='/register' element={<Layout><Register /></Layout>} />
+                <Route path='/profile' element={<Layout><Profile /></Layout>} />
             </Routes>
         </BrowserRouter>
     )
