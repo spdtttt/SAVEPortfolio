@@ -7,7 +7,6 @@ const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -17,15 +16,18 @@ const Login = () => {
         password,
       });
       localStorage.setItem('token', response.data.token);
-      setMessage(response.data.message);
       Swal.fire({
         icon: 'success',
-        title: 'Login Success',
-        text: response.data.message,
+        title: 'เข้าสู่ระบบสำเร็จ',
+        text: `ยินดีต้อนรับคุณ ${response.data.username}`,
       })
       navigate('/profile')
     } catch (error: any) {
-      setMessage(error.response.data.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'เข้าสู่ระบบไม่สำเร็จ',
+        text: error.response.data.message,
+      })
     } finally {
       setEmail('');
       setPassword('');

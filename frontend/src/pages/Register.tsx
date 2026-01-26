@@ -11,16 +11,16 @@ const Register = () => {
     password: "",
     confirmPassword: "",
   });
-  const [message, setMessage] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const generateOTP = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  const sendOTPVerifiy = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (
-      !formData.username ||
-      !formData.email ||
-      !formData.password ||
-      !formData.confirmPassword
-    ) {
+    
+    // ตรวจสอบว่ากรอกข้อมูลครบหรือไม่
+    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
       Swal.fire({
         icon: "error",
         title: "ไม่สามารถสมัครสมาชิกได้",
@@ -29,6 +29,7 @@ const Register = () => {
       return;
     }
 
+    // ตรวจสอบว่ารหัสผ่านตรงกันหรือไม่
     if (formData.password !== formData.confirmPassword) {
       Swal.fire({
         icon: "error",
@@ -39,21 +40,35 @@ const Register = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:3001/register', formData);
-      setMessage(response.data.message);
+      // สุ่ม OTP 6 หลัก
+      const otp = generateOTP();
+      
+      // ยิง API ส่ง OTP
+      await axios.post("http://localhost:3001/sendOTP", {
+        email: formData.email,
+        otp: otp,
+      });
+
+      // บันทึกข้อมูลลง localStorage เพื่อใช้ในหน้า otpVerify (ไม่เก็บ OTP)
+      localStorage.setItem("registerData", JSON.stringify({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      }));
+
       Swal.fire({
         icon: "success",
-        title: "สมัครสมาชิกสำเร็จ",
-        text: response.data.message,
+        title: "ส่ง OTP สำเร็จ",
+        text: "กรุณาตรวจสอบอีเมลของคุณ",
       });
-      
-      navigate('/login');
-    } catch(err: any) {
-      setMessage(err.response.data.message);
+
+      // พาไปหน้า otpVerify
+      navigate("/otp-verify");
+    } catch (err: any) {
       Swal.fire({
         icon: "error",
-        title: "ไม่สามารถสมัครสมาชิกได้",
-        text: err.response.data.message,
+        title: "ไม่สามารถส่ง OTP ได้",
+        text: err.response?.data?.message || "เกิดข้อผิดพลาดในการส่ง OTP",
       });
     }
   };
@@ -72,7 +87,7 @@ const Register = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+        <form className="mt-6 space-y-5" onSubmit={sendOTPVerifiy}>
           <div>
             <label className="mb-1 block text-sm text-slate-300">
               Username

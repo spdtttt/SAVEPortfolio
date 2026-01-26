@@ -11,29 +11,23 @@ const TopBar = () => {
     const token = localStorage.getItem("token");
     if (token) {
       setIsLoggedIn(true);
+
+      const fetchProfileData = async () => {
+        try {
+          const response = await axios.get("http://localhost:3001/profile", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          setMessage(response.data.username);
+        } catch (err) {
+          console.error("Authentication Error", err);
+          handleLogout();
+        }
+      };
+
+      fetchProfileData();
     }
-
-    const fetchProfileData = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
-      try {
-        const response = await axios.get("http://localhost:3001/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setMessage(response.data.username);
-      } catch (err) {
-        console.error("Authentication Error", err);
-        handleLogout();
-      }
-    };
-
-    fetchProfileData();
   }, []);
 
   const handleLogout = () => {
