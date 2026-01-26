@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+.description-line1,
+.description-line2 {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 0;
+    vertical-align: top;
+}
+
+.description-line1 {
+    animation: typing-line1 3s steps(40) forwards;
+}
+
+.description-line2 {
+    animation: typing-line2 3s steps(40) 3s forwards;
+    opacity: 0;
+    animation: typing-line2 3s steps(40) 3s forwards, 
+               fade-in 0s 3s forwards;
+}
+
+.cursor {
+    display: inline-block;
+    width: 3px;
+    height: 1.2em;
+    background-color: white;
+    margin-left: 2px;
+    animation: 
+        cursor 0.5s step-end infinite,
+        move-cursor 0s 3s forwards;
+    vertical-align: text-bottom;
+}
+
+@keyframes typing-line1 {
+    to { width: 100%; }
+}
+
+@keyframes typing-line2 {
+    to { width: 100%; }
+}
+
+@keyframes fade-in {
+    to { opacity: 1; }
+}
+
+@keyframes cursor {
+    50% { opacity: 0; }
+}
