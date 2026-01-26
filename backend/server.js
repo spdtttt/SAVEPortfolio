@@ -266,7 +266,7 @@ app.post("/login", async (req, res) => {
       JWT_SECRET,
       { expiresIn: "3h" },
     );
-    res.json({ message: "Login successful", token });
+    res.json({ message: "Login successful", token, username: user.username });
   });
 });
 

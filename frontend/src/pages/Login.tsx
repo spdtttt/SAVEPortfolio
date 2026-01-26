@@ -7,10 +7,12 @@ const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
+      setLoading(true);
       const response = await axios.post('http://localhost:3001/login', {
         email,
         password,
@@ -29,6 +31,7 @@ const Login = () => {
         text: error.response.data.message,
       })
     } finally {
+      setLoading(false);
       setEmail('');
       setPassword('');
     }
@@ -81,10 +84,11 @@ const Login = () => {
 
           <button
             type="submit"
+            disabled={loading}
             className="w-full rounded-xl bg-[#6C63FF] py-3 font-semibold text-white cursor-pointer
                transition hover:bg-[#5a52d5]"
           >
-            เข้าสู่ระบบ
+            {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
           </button>
         </form>
 

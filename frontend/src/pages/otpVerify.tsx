@@ -14,6 +14,7 @@ const OtpVerify = () => {
   const [timeLeft, setTimeLeft] = useState(600); // 10 นาทีในวินาที (600 วินาที)
   const [isExpired, setIsExpired] = useState(false);
   const intervalRef = useRef<number | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // ดึงข้อมูลจาก localStorage
@@ -115,7 +116,8 @@ const OtpVerify = () => {
 
     // ตรวจสอบ OTP กับ backend (รวมถึง expiration)
     try {
-      // Verify OTP first
+      setLoading(true);
+
       await axios.post("http://localhost:3001/verifyOTP", {
         email: registerData.email,
         otp: otp,
@@ -183,6 +185,8 @@ const OtpVerify = () => {
           text: err.response?.data?.message || "เกิดข้อผิดพลาดในการสมัครสมาชิก",
         });
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -246,14 +250,14 @@ const OtpVerify = () => {
 
           <button
             type="submit"
-            disabled={isExpired}
+            disabled={isExpired || loading}
             className={`w-full rounded-xl py-3 font-semibold text-white transition ${
               isExpired 
                 ? 'bg-gray-500 cursor-not-allowed' 
                 : 'bg-[#6C63FF] hover:bg-[#5a52d5] cursor-pointer'
             }`}
           >
-            {isExpired ? 'OTP หมดอายุแล้ว' : 'ยืนยัน OTP'}
+            {isExpired ? 'OTP หมดอายุแล้ว' : loading ? 'กำลังยืนยัน OTP...' : 'ยืนยัน OTP'}
           </button>
         </form>
 

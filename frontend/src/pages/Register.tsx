@@ -11,6 +11,7 @@ const Register = () => {
     password: "",
     confirmPassword: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -42,6 +43,7 @@ const Register = () => {
     try {
       // สุ่ม OTP 6 หลัก
       const otp = generateOTP();
+      setLoading(true);
       
       // ยิง API ส่ง OTP
       await axios.post("http://localhost:3001/sendOTP", {
@@ -70,6 +72,8 @@ const Register = () => {
         title: "ไม่สามารถส่ง OTP ได้",
         text: err.response?.data?.message || "เกิดข้อผิดพลาดในการส่ง OTP",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -155,10 +159,11 @@ const Register = () => {
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-[#6C63FF] py-3 font-semibold text-white
-               transition hover:bg-[#5a52d5] cursor-pointer"
+            disabled={loading}
+            className="w-full rounded-xl bg-[#6C63FF] py-3 font-semibold text-white cursor-pointer
+               transition hover:bg-[#5a52d5]"
           >
-            สร้างบัญชี
+            {loading ? 'กำลังสร้างบัญชี...' : 'สร้างบัญชี'}
           </button>
         </form>
 

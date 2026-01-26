@@ -77,8 +77,7 @@ const TopBar = () => {
             </span>
             <button
               onClick={() => {
-                setIsLoggedIn(false);
-                navigate("/");
+                handleLogout();
               }}
               className="px-5 py-2 cursor-pointer bg-red-500/80 text-white rounded-lg hover:bg-red-600 transition-all"
               style={{ fontFamily: "Prompt, sans-serif" }}
