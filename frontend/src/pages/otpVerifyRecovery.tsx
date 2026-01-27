@@ -6,11 +6,7 @@ import { useState, useEffect, useRef } from "react";
 const OtpVerify = () => {
   const navigate = useNavigate();
   const [otp, setOtp] = useState("");
-  const [registerData, setRegisterData] = useState<{
-    username: string;
-    email: string;
-    password: string;
-  } | null>(null);
+  const [recoveryData, setRecoveryData] = useState('');
   const [timeLeft, setTimeLeft] = useState(600); // 10 นาทีในวินาที (600 วินาที)
   const [isExpired, setIsExpired] = useState(false);
   const intervalRef = useRef<number | null>(null);
@@ -18,9 +14,9 @@ const OtpVerify = () => {
 
   useEffect(() => {
     // ดึงข้อมูลจาก localStorage
-    const storedData = localStorage.getItem("registerData");
+    const storedData = localStorage.getItem("recoveryData");
     if (storedData) {
-      setRegisterData(JSON.parse(storedData));
+      setRecoveryData(storedData);
       
       // เริ่ม countdown timer (10 นาที = 600 วินาที)
       const startTime = Date.now();
@@ -43,11 +39,11 @@ const OtpVerify = () => {
           Swal.fire({
             icon: "warning",
             title: "OTP หมดอายุแล้ว",
-            text: "รหัส OTP ของคุณหมดอายุแล้ว กรุณาสมัครสมาชิกใหม่",
-            confirmButtonText: "กลับไปสมัครสมาชิก",
+            text: "รหัส OTP ของคุณหมดอายุแล้ว กรุณาส่ง OTP ใหม่",
+            confirmButtonText: "กลับไปหน้าแรก",
           }).then(() => {
-            localStorage.removeItem("registerData");
-            navigate("/register");
+            localStorage.removeItem("recoveryData");
+            navigate("/");
           });
         } else if (secondsLeft === 60) {
           // แจ้งเตือนเมื่อเหลือ 1 นาที
@@ -64,10 +60,10 @@ const OtpVerify = () => {
       // ถ้าไม่มีข้อมูล ให้กลับไปหน้า register
       Swal.fire({
         icon: "warning",
-        title: "ไม่พบข้อมูลการสมัครสมาชิก",
-        text: "กรุณาสมัครสมาชิกใหม่",
+        title: "ไม่พบข้อมูลการกู้คืนรหัสผ่าน",
+        text: "กรุณากรอก Email ใหม่",
       });
-      navigate("/register");
+      navigate("/");
     }
 
     // Cleanup interval เมื่อ component unmount
@@ -90,13 +86,13 @@ const OtpVerify = () => {
       return;
     }
 
-    if (!registerData) {
+    if (!recoveryData) {
       Swal.fire({
         icon: "error",
         title: "เกิดข้อผิดพลาด",
-        text: "ไม่พบข้อมูลการสมัครสมาชิก",
+        text: "ไม่พบข้อมูลการกู้คืนรหัสผ่าน",
       });
-      navigate("/register");
+      navigate("/");
       return;
     }
 
@@ -108,8 +104,8 @@ const OtpVerify = () => {
         text: "รหัส OTP ของคุณหมดอายุแล้ว กรุณาสมัครสมาชิกใหม่",
         confirmButtonText: "กลับไปสมัครสมาชิก",
       }).then(() => {
-        localStorage.removeItem("registerData");
-        navigate("/register");
+        localStorage.removeItem("recoveryData");
+        navigate("/");
       });
       return;
     }
@@ -118,16 +114,9 @@ const OtpVerify = () => {
     try {
       setLoading(true);
 
-      await axios.post("http://localhost:3001/verifyOTP", {
-        email: registerData.email,
+      const response = await axios.post("http://localhost:3001/verifyOTP-recovery", {
+        email: recoveryData,
         otp: otp,
-      });
-
-      // ถ้า OTP ถูกต้องและยังไม่หมดอายุ ให้ยิง API register
-      const response = await axios.post("http://localhost:3001/register", {
-        username: registerData.username,
-        email: registerData.email,
-        password: registerData.password,
       });
 
       // หยุด countdown timer
@@ -135,16 +124,20 @@ const OtpVerify = () => {
         window.clearInterval(intervalRef.current);
       }
 
-      // ลบข้อมูลออกจาก localStorage
-      localStorage.removeItem("registerData");
+      // ลบข้อมูลอีเมลออกจาก localStorage
+      localStorage.removeItem("recoveryData");
 
       Swal.fire({
         icon: "success",
-        title: "สมัครสมาชิกสำเร็จ",
-        text: response.data.message || "สมัครสมาชิกสำเร็จ",
+        title: "ยืนยัน OTP สำเร็จ",
+        text: "กรุณากำหนดรหัสผ่านใหม่ที่ต้องการ",
       });
 
-      navigate("/login");
+      const resetToken = response.data?.resetToken;
+
+      navigate("/reset-password", {
+        state: { resetToken },
+      });
     } catch (err: any) {
       // Handle OTP verification errors
       if (err.response?.status === 400) {
@@ -159,11 +152,11 @@ const OtpVerify = () => {
           Swal.fire({
             icon: "error",
             title: "OTP หมดอายุแล้ว",
-            text: 'รหัส OTP ของคุณหมดอายุแล้ว กรุณาสมัครสมาชิกใหม่',
-            confirmButtonText: "กลับไปสมัครสมาชิก",
+            text: 'รหัส OTP ของคุณหมดอายุแล้ว',
+            confirmButtonText: "กลับไปหน้าหลัก",
           }).then(() => {
-            localStorage.removeItem("registerData");
-            navigate("/register");
+            localStorage.removeItem("recoveryData");
+            navigate("/");
           });
         } else if (errorMessage.includes("OTP") || errorMessage.includes("Invalid")) {
           Swal.fire({
@@ -202,9 +195,9 @@ const OtpVerify = () => {
           <p className="mt-2 text-slate-400">
             กรุณากรอก OTP ที่ได้รับจากอีเมล
           </p>
-          {registerData && (
+          {recoveryData && (
             <p className="mt-2 text-sm text-slate-500">
-              ส่งไปที่: {registerData.email}
+              ส่งไปที่: {recoveryData}
             </p>
           )}
           {!isExpired && (

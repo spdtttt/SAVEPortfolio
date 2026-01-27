@@ -82,11 +82,15 @@ const Login = () => {
             />
           </div>
 
+          <div onClick={() => navigate("/send-email-otp")} className="text-white font-medium cursor-pointer hover:underline -mt-2 flex justify-end">
+            ลืมรหัสผ่าน?
+          </div>
+
           <button
             type="submit"
             disabled={loading}
             className="w-full rounded-xl bg-[#6C63FF] py-3 font-semibold text-white cursor-pointer
-               transition hover:bg-[#5a52d5]"
+               transition hover:bg-[#5a52d5] disabled:cursor-not-allowed disabled:hover:bg-[#393588]"
           >
             {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
           </button>
