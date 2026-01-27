@@ -454,14 +454,14 @@ app.post("/login", async (req, res) => {
       return res.status(500).json({ message: "Server error" });
     }
     if (result.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "ไม่พบอีเมลนี้ในระบบ" });
     }
 
     const user = result[0];
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ message: "รหัสผ่านไม่ถูกต้อง" });
     }
 
     const token = jwt.sign(

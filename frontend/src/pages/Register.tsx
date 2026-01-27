@@ -64,6 +64,13 @@ const Register = () => {
         text: "กรุณาตรวจสอบอีเมลของคุณ",
       });
 
+      setFormData({
+        username: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+      
       // พาไปหน้า otpVerify
       navigate("/otp-verify");
     } catch (err: any) {

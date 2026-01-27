@@ -15,22 +15,22 @@ const Home = () => {
   }, [])
 
   return (
-    <div className="mt-10">
+    <div className="sm:mt-7 md:mt-10 px-6">
       {/* Title */}
       <div className="flex flex-col gap-5 text-center">
         <div className="bg-linear-to-r from-[#837cfd] to-[#97f0f5] bg-clip-text">
-          <h1 className="text-7xl font-bold font-[Prompt] text-transparent">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold font-[Prompt] text-transparent">
             บันทึกผลงาน
           </h1>
         </div>
-        <h1 className="text-6xl font-bold text-white font-[Prompt]">
+        <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold text-white font-[Prompt]">
           Portfolio ของคุณ
         </h1>
       </div>
       {/*  */}
 
-      {/* Title & Description */}
-      <div className="text-center font-[Prompt] min-h-18 text-white text-2xl mt-9 max-w-230 mx-auto font-medium">
+      {/* Description */}
+      <div className="text-center font-[Prompt] min-h-18 text-white text-xl sm:text-2xl mt-9 max-w-230 mx-auto font-medium">
         <p className="text-transparent bg-linear-to-r from-[#c9c6fa] to-[#e2f9fa] bg-clip-text">
           <TypeAnimation
             sequence={[
@@ -48,7 +48,7 @@ const Home = () => {
       {/*  */}
 
       {/* Button */}
-      <div className="flex justify-center mt-15 font-[Prompt] text-white font-bold text-2xl">
+      <div className="flex justify-center mt-8 sm:mt-10 md:mt-15 font-[Prompt] text-white font-bold text-2xl">
         <button
           onClick={() =>
             isLoggedIn ? navigate("/profile") : navigate("/login")

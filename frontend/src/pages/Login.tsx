@@ -13,27 +13,28 @@ const Login = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const response = await axios.post('http://localhost:3001/login', {
+      const response = await axios.post("http://localhost:3001/login", {
         email,
         password,
       });
-      localStorage.setItem('token', response.data.token);
+      localStorage.setItem("token", response.data.token);
       Swal.fire({
-        icon: 'success',
-        title: 'เข้าสู่ระบบสำเร็จ',
+        icon: "success",
+        title: "เข้าสู่ระบบสำเร็จ",
         text: `ยินดีต้อนรับคุณ ${response.data.username}`,
-      })
-      navigate('/profile')
+      });
+
+      setEmail("");
+      setPassword("");
+      navigate("/profile");
     } catch (error: any) {
       Swal.fire({
-        icon: 'error',
-        title: 'เข้าสู่ระบบไม่สำเร็จ',
+        icon: "error",
+        title: "เข้าสู่ระบบไม่สำเร็จ",
         text: error.response.data.message,
-      })
+      });
     } finally {
       setLoading(false);
-      setEmail('');
-      setPassword('');
     }
   };
 
@@ -82,7 +83,10 @@ const Login = () => {
             />
           </div>
 
-          <div onClick={() => navigate("/send-email-otp")} className="text-white font-medium cursor-pointer hover:underline -mt-2 flex justify-end">
+          <div
+            onClick={() => navigate("/send-email-otp")}
+            className="text-white font-medium cursor-pointer hover:underline -mt-2 flex justify-end"
+          >
             ลืมรหัสผ่าน?
           </div>
 
@@ -92,7 +96,7 @@ const Login = () => {
             className="w-full rounded-xl bg-[#6C63FF] py-3 font-semibold text-white cursor-pointer
                transition hover:bg-[#5a52d5] disabled:cursor-not-allowed disabled:hover:bg-[#393588]"
           >
-            {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
+            {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
           </button>
         </form>
 
