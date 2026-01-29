@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
+const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 
 const app = express();
@@ -18,6 +19,14 @@ const connection = mysql.createConnection({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+});
+
+const otpLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 นาที
+  max: 5,                  // 5 ครั้ง
+  message: {
+    message: "คุณพยายามมากเกินไป กรุณารอ 10 นาที",
+  },
 });
 
 // Middleware for verifying JWT
@@ -52,10 +61,10 @@ const OTP_EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutes
 
 // Send OTP Endpoint
 app.post("/sendOTP", async (req, res) => {
-  const { email, otp } = req.body;
+  const { email } = req.body;
 
-  if (!email || !otp) {
-    return res.status(400).json({ message: "Email and OTP are required" });
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
   }
 
   try {
@@ -82,6 +91,8 @@ app.post("/sendOTP", async (req, res) => {
         resolve(null);
       });
     });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // บันทึก OTP พร้อมกับเวลาหมดอายุ
     const expiresAt = new Date(Date.now() + OTP_EXPIRATION_TIME);
@@ -166,10 +177,10 @@ app.post("/sendOTP", async (req, res) => {
 
 // Send OTP Endpoint for Recovery
 app.post("/sendOTP-recovery", async (req, res) => {
-  const { email, otp } = req.body;
+  const { email } = req.body;
 
-  if (!email || !otp) {
-    return res.status(400).json({ message: "Email and OTP are required" });
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
   }
 
   try {
@@ -185,6 +196,8 @@ app.post("/sendOTP-recovery", async (req, res) => {
     if (Array.isArray(emailCheckResult) && emailCheckResult.length === 0) {
       return res.status(409).json({ message: "ไม่พบอีเมลนี้ในระบบ" });
     }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // ลบ OTP เก่าออกก่อนส่ง OTP ใหม่
     const deleteOldOtpSql = `DELETE FROM otp_verifications WHERE email = ?`;
@@ -279,7 +292,7 @@ app.post("/sendOTP-recovery", async (req, res) => {
 });
 
 // Verify OTP Endpoint (ใช้กับการสมัครสมาชิก)
-app.post("/verifyOTP", async (req, res) => {
+app.post("/verifyOTP", otpLimiter, async (req, res) => {
   const { email, otp } = req.body;
 
   if (!email || !otp) {
@@ -325,7 +338,7 @@ app.post("/verifyOTP", async (req, res) => {
 });
 
 // Verify OTP Endpoint สำหรับกู้คืนรหัสผ่าน (สร้าง reset token)
-app.post("/verifyOTP-recovery", async (req, res) => {
+app.post("/verifyOTP-recovery", otpLimiter, async (req, res) => {
   const { email, otp } = req.body;
 
   if (!email || !otp) {
@@ -378,7 +391,7 @@ app.post("/verifyOTP-recovery", async (req, res) => {
 });
 
 // Reset Password Endpoint
-app.post("/reset-password", async (req, res) => {
+app.post("/reset-password", otpLimiter, async (req, res) => {
   const { token, newPassword } = req.body;
 
   if (!token || !newPassword) {
@@ -402,10 +415,10 @@ app.post("/reset-password", async (req, res) => {
       }
 
       if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(404).json({ message: "ไม่พบผู้ใช้งาน" });
       }
 
-      res.status(200).json({ message: "Password reset successfully" });
+      res.status(200).json({ message: "เปลี่ยนรหัสผ่านสำเร็จ" });
     });
   } catch (err) {
     console.error("Error in reset-password:", err);

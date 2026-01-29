@@ -35,6 +35,7 @@ const TopBar = () => {
     localStorage.removeItem("token");
     navigate("/login");
     setIsMenuOpen(false);
+    setIsLoggedIn(false);
   };
 
   const handleNavigate = (path: string) => {
@@ -102,7 +103,9 @@ const TopBar = () => {
           onClick={() => setIsMenuOpen((prev) => !prev)}
           aria-label="Toggle menu"
         >
-          <i className={isMenuOpen ? "fa-solid fa-xmark" : "fa-solid fa-bars"}></i>
+          <i
+            className={isMenuOpen ? "fa-solid fa-xmark" : "fa-solid fa-bars"}
+          ></i>
         </button>
       </div>
 

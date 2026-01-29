@@ -22,11 +22,9 @@ const SendEmailOTP = () => {
       return;
     }
 
-    const otp = generateOTP();
     try {
       await axios.post("http://localhost:3001/sendOTP-recovery", {
         email: email,
-        otp: otp,
       });
 
       localStorage.setItem("recoveryData", email);
@@ -48,10 +46,6 @@ const SendEmailOTP = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const generateOTP = () => {
-    return Math.floor(100000 + Math.random() * 900000);
   };
 
   return (

@@ -13,10 +13,6 @@ const Register = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  const generateOTP = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  };
-
   const sendOTPVerifiy = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
@@ -41,14 +37,11 @@ const Register = () => {
     }
 
     try {
-      // สุ่ม OTP 6 หลัก
-      const otp = generateOTP();
       setLoading(true);
       
       // ยิง API ส่ง OTP
       await axios.post("http://localhost:3001/sendOTP", {
         email: formData.email,
-        otp: otp,
       });
 
       // บันทึกข้อมูลลง localStorage เพื่อใช้ในหน้า otpVerify (ไม่เก็บ OTP)
