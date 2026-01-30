@@ -3,6 +3,8 @@ import { useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -13,7 +15,7 @@ const Login = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const response = await axios.post("http://localhost:3001/login", {
+      const response = await axios.post(`${API_URL}/login`, {
         email,
         password,
       });

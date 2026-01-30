@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const TopBar = () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -15,7 +17,7 @@ const TopBar = () => {
 
       const fetchProfileData = async () => {
         try {
-          const response = await axios.get("http://localhost:3001/profile", {
+          const response = await axios.get(`${API_URL}/profile`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -45,7 +47,7 @@ const TopBar = () => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0f1a2e] border-b border-white/10">
-      <div className="max-w-[1700px] mx-auto px-4 md:px-6 py-4 md:py-5 flex items-center justify-between">
+      <div className="mx-auto px-10 md:px-30 py-4 md:py-5 flex items-center justify-between">
         {/* Logo */}
         <div
           className="flex items-center space-x-2 cursor-pointer"

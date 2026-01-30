@@ -3,6 +3,8 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -15,9 +17,14 @@ const Register = () => {
 
   const sendOTPVerifiy = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     // ตรวจสอบว่ากรอกข้อมูลครบหรือไม่
-    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (
+      !formData.username ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
       Swal.fire({
         icon: "error",
         title: "ไม่สามารถสมัครสมาชิกได้",
@@ -38,18 +45,21 @@ const Register = () => {
 
     try {
       setLoading(true);
-      
+
       // ยิง API ส่ง OTP
-      await axios.post("http://localhost:3001/sendOTP", {
+      await axios.post(`${API_URL}/sendOTP`, {
         email: formData.email,
       });
 
       // บันทึกข้อมูลลง localStorage เพื่อใช้ในหน้า otpVerify (ไม่เก็บ OTP)
-      localStorage.setItem("registerData", JSON.stringify({
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-      }));
+      localStorage.setItem(
+        "registerData",
+        JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+        }),
+      );
 
       Swal.fire({
         icon: "success",
@@ -63,7 +73,7 @@ const Register = () => {
         password: "",
         confirmPassword: "",
       });
-      
+
       // พาไปหน้า otpVerify
       navigate("/otp-verify");
     } catch (err: any) {
@@ -163,7 +173,7 @@ const Register = () => {
             className="w-full rounded-xl bg-[#6C63FF] py-3 font-semibold text-white cursor-pointer
                transition hover:bg-[#5a52d5] disabled:cursor-not-allowed disabled:hover:bg-[#393588]"
           >
-            {loading ? 'กำลังสร้างบัญชี...' : 'สร้างบัญชี'}
+            {loading ? "กำลังสร้างบัญชี..." : "สร้างบัญชี"}
           </button>
         </form>
 

@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Trophy, Briefcase, Zap, Plus } from "lucide-react";
+import { Trophy, Plus } from "lucide-react";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -20,7 +22,7 @@ const Profile = () => {
       }
 
       try {
-        const response = await axios.get("http://localhost:3001/profile", {
+        const response = await axios.get(`${API_URL}/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

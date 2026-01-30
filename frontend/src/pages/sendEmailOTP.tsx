@@ -23,7 +23,7 @@ const SendEmailOTP = () => {
     }
 
     try {
-      await axios.post("http://localhost:3001/sendOTP-recovery", {
+      await axios.post(`${import.meta.env.VITE_API_URL}/sendOTP-recovery`, {
         email: email,
       });
 
