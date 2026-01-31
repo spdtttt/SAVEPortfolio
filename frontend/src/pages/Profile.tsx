@@ -1,7 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Trophy, Plus } from "lucide-react";
+import Sidebar from "../components/Sidebar";
+import AddPage from "../components/AddPage";
+import CompetitionPage from "../components/CompetitionPage";
+import ProjectPage from "../components/ProjectPage";
+import ActivityPage from "../components/ActivityPage";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -12,6 +16,8 @@ const Profile = () => {
     username: "",
     email: "",
   });
+  const [isAdd, setIsAdd] = useState(false);
+  const [page, setPage] = useState('competition');
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -47,42 +53,18 @@ const Profile = () => {
   };
 
   return (
-    <div className="font-[Prompt]">
-      {/* Title & Add Button */}
-      <div className="flex justify-between md:flex-row flex-col md:gap-0 gap-5">
-        {/* Header & Count */}
-        <div className="flex flex-col gap-4">
-          <h2 className="text-white text-3xl sm:text-4xl md:text-5xl font-bold">
-            Portfolio ของ {userData.username}
-          </h2>
-          <p className="text-purple-200 text-lg sm:text-xl md:text-2xl">
-            ผลงานทั้งหมด ... รายการ
-          </p>
-        </div>
+    <div className="flex">
+      <Sidebar userData={userData} isAdd={isAdd} setIsAdd={setIsAdd} page={page} setPage={setPage} />
 
-        {/* Add Button */}
-        <div className="flex items-center">
-          <button className="flex text-white gap-2 items-center font-bold text-lg sm:text-xl md:text-2xl rounded-2xl px-5 py-4 border border-white bg-linear-to-r from-[#6c63ff] to-[#00f2ff] cursor-pointer hover:scale-105 hover:shadow-[0_10px_25px_rgba(0,0,0,0.25)] hover:bg-blue-800 transition-all duration-300">
-            <Plus />
-            เพิ่มผลงาน
-          </button>
+      {isAdd ? (
+        <AddPage isAdd={isAdd} setIsAdd={setIsAdd} />
+      ) : (
+        <div className="font-[Prompt] pl-0 sm:pl-15 w-full">
+          {page === 'competition' && <CompetitionPage isAdd={isAdd} setIsAdd={setIsAdd} />}
+          {page === 'project' && <ProjectPage isAdd={isAdd} setIsAdd={setIsAdd} />}
+          {page === 'activity' && <ActivityPage isAdd={isAdd} setIsAdd={setIsAdd} />}
         </div>
-      </div>
-
-      {/* Portfolio */}
-      <div>
-        {/* Competition */}
-        <div className="mt-13">
-          <div className="flex items-center gap-4">
-            <div className="bg-linear-to-br from-yellow-400 to-orange-500 p-3 rounded-xl">
-              <Trophy className="text-white md:w-8 md:h-8 w-5 h-5" />
-            </div>
-            <h2 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold">
-              การแข่งขัน
-            </h2>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
