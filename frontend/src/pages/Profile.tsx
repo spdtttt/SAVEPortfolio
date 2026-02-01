@@ -6,6 +6,7 @@ import AddPage from "../components/AddPage";
 import CompetitionPage from "../components/CompetitionPage";
 import ProjectPage from "../components/ProjectPage";
 import ActivityPage from "../components/ActivityPage";
+import MobileMenu from "../components/MobileMenu";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -55,9 +56,12 @@ const Profile = () => {
   return (
     <div className="flex">
       <Sidebar userData={userData} isAdd={isAdd} setIsAdd={setIsAdd} page={page} setPage={setPage} />
+      <MobileMenu page={page} setPage={setPage} isAdd={isAdd} setIsAdd={setIsAdd} />
 
       {isAdd ? (
-        <AddPage isAdd={isAdd} setIsAdd={setIsAdd} />
+        <div className="font-[Prompt] pl-0 sm:pl-15 w-full">
+          <AddPage />
+        </div>
       ) : (
         <div className="font-[Prompt] pl-0 sm:pl-15 w-full">
           {page === 'competition' && <CompetitionPage isAdd={isAdd} setIsAdd={setIsAdd} />}

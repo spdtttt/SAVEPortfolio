@@ -28,3 +28,8 @@
 .animate-scaleIn {
     animation: scaleIn 0.2s ease-out;
 }
+
+.glass-select__control {
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+}

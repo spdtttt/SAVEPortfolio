@@ -5,7 +5,32 @@ const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
 const rateLimit = require("express-rate-limit");
+const multer = require("multer");
 require("dotenv").config();
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+      cb(null, 'uploads')
+  },
+  filename: function (req, file, cb) {
+    const fileName = `${Date.now()}-${file.originalname}`
+    cb(null, fileName)
+  }
+})
+
+const upload = multer({
+   storage,
+   limits: {
+    fileSize: 1024 * 1024 * 20
+   },
+   fileFilter: (req, file, cb) => {
+    if(file.mimetype === 'image/png' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg' || file.mimetype === 'application/pdf') {
+      cb(null, true)
+    } else {
+      cb(new Error('File type not supported'), false)
+    }
+   }
+})
 
 const app = express();
 const port = 3001;
@@ -58,6 +83,29 @@ app.get("/profile", verifyToken, (req, res) => {
 
 // กำหนดเวลาหมดอายุของ OTP
 const OTP_EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutes
+
+// File Upload Endpoint
+app.post('/upload', (req, res) => {
+  upload.array('files', 10)(req, res, (err) => {
+    if (err) {
+      console.error(err)
+      return res.status(400).json({ message: err.message })
+    }
+
+    const files = req.files.map(file => ({
+      filename: file.filename,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+      path: file.path,
+    }))
+
+    res.status(200).json({
+      message: 'Upload success',
+      files
+    })
+  })
+})
 
 // Send OTP Endpoint
 app.post("/sendOTP", async (req, res) => {
