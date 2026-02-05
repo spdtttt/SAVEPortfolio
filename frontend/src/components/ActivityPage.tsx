@@ -1,6 +1,10 @@
 import { Plus } from "lucide-react";
 
-const ActivityPage = ({ isAdd, setIsAdd }: { isAdd: boolean; setIsAdd: (isAdd: boolean) => void; }) => {
+const ActivityPage = ({ isAdd, setIsAdd, portfolios }: { 
+  isAdd: boolean; 
+  setIsAdd: (isAdd: boolean) => void;
+  portfolios: any[];
+}) => {
   return (
     <>
       {/* Title & Add Button */}

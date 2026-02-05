@@ -13,7 +13,7 @@ const MobileMenu = ({
     {
       id: "competition",
       name: "แข่งขัน",
-      icon: "fas fa-th-large",
+      icon: "fas fa-trophy",
     },
     {
       id: "project",

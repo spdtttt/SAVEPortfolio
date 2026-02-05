@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
-import AddPage from "../components/AddPage";
+import AddPage from "./AddPage";
 import CompetitionPage from "../components/CompetitionPage";
 import ProjectPage from "../components/ProjectPage";
 import ActivityPage from "../components/ActivityPage";
@@ -18,7 +18,8 @@ const Profile = () => {
     email: "",
   });
   const [isAdd, setIsAdd] = useState(false);
-  const [page, setPage] = useState('competition');
+  const [page, setPage] = useState("competition");
+  const [portfolios, setPortfolios] = useState([]);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -48,6 +49,18 @@ const Profile = () => {
     fetchProfileData();
   }, []);
 
+  useEffect(() => {
+    axios
+      .get(`${API_URL}/portfolios`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+      .then((res) => {
+        setPortfolios(res.data);
+      });
+  }, [navigate, page]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
@@ -55,18 +68,35 @@ const Profile = () => {
 
   return (
     <div className="flex">
-      <Sidebar userData={userData} isAdd={isAdd} setIsAdd={setIsAdd} page={page} setPage={setPage} />
-      <MobileMenu page={page} setPage={setPage} isAdd={isAdd} setIsAdd={setIsAdd} />
+      <Sidebar
+        userData={userData}
+        isAdd={isAdd}
+        setIsAdd={setIsAdd}
+        page={page}
+        setPage={setPage}
+      />
+      <MobileMenu
+        page={page}
+        setPage={setPage}
+        isAdd={isAdd}
+        setIsAdd={setIsAdd}
+      />
 
       {isAdd ? (
-        <div className="font-[Prompt] pl-0 sm:pl-15 w-full">
+        <div className="font-[Prompt] pl-0 sm:pl-15 w-full pb-15">
           <AddPage />
         </div>
       ) : (
-        <div className="font-[Prompt] pl-0 sm:pl-15 w-full">
-          {page === 'competition' && <CompetitionPage isAdd={isAdd} setIsAdd={setIsAdd} />}
-          {page === 'project' && <ProjectPage isAdd={isAdd} setIsAdd={setIsAdd} />}
-          {page === 'activity' && <ActivityPage isAdd={isAdd} setIsAdd={setIsAdd} />}
+        <div className="font-[Prompt] pl-0 sm:pl-15 w-full pb-20">
+          {page === "competition" && (
+            <CompetitionPage isAdd={isAdd} setIsAdd={setIsAdd} portfolios={portfolios} />
+          )}
+          {page === "project" && (
+            <ProjectPage isAdd={isAdd} setIsAdd={setIsAdd} portfolios={portfolios} />
+          )}
+          {page === "activity" && (
+            <ActivityPage isAdd={isAdd} setIsAdd={setIsAdd} portfolios={portfolios} />
+          )}
         </div>
       )}
     </div>

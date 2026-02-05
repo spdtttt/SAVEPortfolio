@@ -10,27 +10,32 @@ require("dotenv").config();
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-      cb(null, 'uploads')
+    cb(null, "uploads");
   },
   filename: function (req, file, cb) {
-    const fileName = `${Date.now()}-${file.originalname}`
-    cb(null, fileName)
-  }
-})
+    const fileName = `${Date.now()}-${file.originalname}`;
+    cb(null, fileName);
+  },
+});
 
 const upload = multer({
-   storage,
-   limits: {
-    fileSize: 1024 * 1024 * 20
-   },
-   fileFilter: (req, file, cb) => {
-    if(file.mimetype === 'image/png' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg' || file.mimetype === 'application/pdf') {
-      cb(null, true)
+  storage,
+  limits: {
+    fileSize: 1024 * 1024 * 20,
+  },
+  fileFilter: (req, file, cb) => {
+    if (
+      file.mimetype === "image/png" ||
+      file.mimetype === "image/jpeg" ||
+      file.mimetype === "image/jpg" ||
+      file.mimetype === "application/pdf"
+    ) {
+      cb(null, true);
     } else {
-      cb(new Error('File type not supported'), false)
+      cb(new Error("File type not supported"), false);
     }
-   }
-})
+  },
+});
 
 const app = express();
 const port = 3001;
@@ -38,17 +43,19 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 
 const connection = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  dateStrings: true,
 });
 
 const otpLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 นาที
-  max: 5,                  // 5 ครั้ง
+  max: 5, // 5 ครั้ง
   message: {
     message: "คุณพยายามมากเกินไป กรุณารอ 10 นาที",
   },
@@ -85,27 +92,129 @@ app.get("/profile", verifyToken, (req, res) => {
 const OTP_EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutes
 
 // File Upload Endpoint
-app.post('/upload', (req, res) => {
-  upload.array('files', 10)(req, res, (err) => {
+app.post("/upload", verifyToken, (req, res) => {
+  upload.array("files", 10)(req, res, async (err) => {
     if (err) {
-      console.error(err)
-      return res.status(400).json({ message: err.message })
+      console.error(err);
+      return res.status(400).json({ message: err.message });
     }
 
-    const files = req.files.map(file => ({
-      filename: file.filename,
-      originalname: file.originalname,
-      mimetype: file.mimetype,
-      size: file.size,
-      path: file.path,
-    }))
+    try {
+      const { title, description, type, level, startDate, endDate } = req.body;
 
-    res.status(200).json({
-      message: 'Upload success',
-      files
-    })
-  })
-})
+      const userId = req.user.id;
+
+      const [result] = await connection.promise().query(
+        `
+        INSERT INTO portfolios
+        (user_id, title, description, type, level, start_date, end_date)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        `,
+        [
+          userId,
+          title,
+          description,
+          type,
+          level || null,
+          startDate || null,
+          endDate || null,
+        ],
+      );
+
+      const portfolioId = result.insertId;
+
+      if (req.files && req.files.length > 0) {
+        const fileValues = req.files.map((file) => [
+          portfolioId,
+          file.filename,
+        ]);
+
+        await connection.promise().query(
+          `
+          INSERT INTO portfolio_files (portfolio_id, file_name)
+          VALUES ?
+          `,
+          [fileValues],
+        );
+      }
+
+      res.status(200).json({
+        message: "อัปโหลดสำเร็จ",
+        portfolioId,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "เกิดข้อผิดพลาดในการอัปโหลด" });
+    }
+  });
+});
+
+// Get Portfolio Endpoint
+app.get("/portfolios", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const [rows] = await connection.promise().query(
+      `
+        SELECT 
+          p.*,
+          pf.file_name
+        FROM portfolios p
+        LEFT JOIN portfolio_files pf
+          ON p.id = pf.portfolio_id
+        WHERE p.user_id = ?
+        ORDER BY
+          CASE 
+            WHEN p.type = 'competition' THEN 0
+            ELSE 1
+          END,
+          CASE 
+            WHEN p.type = 'competition' THEN
+              CASE p.level
+                WHEN 'international' THEN 1
+                WHEN 'national' THEN 2
+                WHEN 'province district' THEN 3
+                WHEN 'school' THEN 4
+                ELSE 5
+              END
+          END,
+          CASE 
+            WHEN p.type <> 'competition' THEN p.created_at
+          END DESC
+      `,
+      [userId],
+    );
+
+    // จัด group รูปให้เป็น array
+    const portfolios = [];
+    const map = {};
+
+    rows.forEach((row) => {
+      if (!map[row.id]) {
+        map[row.id] = {
+          id: row.id,
+          title: row.title,
+          description: row.description,
+          type: row.type,
+          level: row.level,
+          startDate: row.start_date,
+          endDate: row.end_date,
+          files: [],
+        };
+        portfolios.push(map[row.id]);
+      }
+
+      if (row.file_name) {
+        map[row.id].files.push(row.file_name);
+      }
+    });
+
+    res.json(portfolios);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "ดึงข้อมูลไม่สำเร็จ" });
+  }
+});
 
 // Send OTP Endpoint
 app.post("/sendOTP", async (req, res) => {
@@ -156,7 +265,7 @@ app.post("/sendOTP", async (req, res) => {
           } else {
             resolve(result);
           }
-        }
+        },
       );
     });
 
@@ -214,8 +323,9 @@ app.post("/sendOTP", async (req, res) => {
     console.error("Error in sendOTP:", err);
     if (!res.headersSent) {
       if (err.code === "ER_NO_SUCH_TABLE") {
-        return res.status(500).json({ 
-          message: "Database table not found. Please run the SQL script to create otp_verifications table." 
+        return res.status(500).json({
+          message:
+            "Database table not found. Please run the SQL script to create otp_verifications table.",
         });
       }
       return res.status(500).json({ message: "Failed to send OTP" });
@@ -272,7 +382,7 @@ app.post("/sendOTP-recovery", async (req, res) => {
           } else {
             resolve(result);
           }
-        }
+        },
       );
     });
 
@@ -330,8 +440,9 @@ app.post("/sendOTP-recovery", async (req, res) => {
     console.error("Error in sendOTP:", err);
     if (!res.headersSent) {
       if (err.code === "ER_NO_SUCH_TABLE") {
-        return res.status(500).json({ 
-          message: "Database table not found. Please run the SQL script to create otp_verifications table." 
+        return res.status(500).json({
+          message:
+            "Database table not found. Please run the SQL script to create otp_verifications table.",
         });
       }
       return res.status(500).json({ message: "Failed to send OTP" });
@@ -370,7 +481,9 @@ app.post("/verifyOTP", otpLimiter, async (req, res) => {
           console.error("Error deleting expired OTP:", err);
         }
       });
-      return res.status(400).json({ message: "OTP has expired. Please request a new one." });
+      return res
+        .status(400)
+        .json({ message: "OTP has expired. Please request a new one." });
     }
 
     // ลบ OTP ที่ใช้แล้ว
@@ -416,7 +529,9 @@ app.post("/verifyOTP-recovery", otpLimiter, async (req, res) => {
           console.error("Error deleting expired OTP:", err);
         }
       });
-      return res.status(400).json({ message: "OTP has expired. Please request a new one." });
+      return res
+        .status(400)
+        .json({ message: "OTP has expired. Please request a new one." });
     }
 
     // ลบ OTP ที่ใช้แล้ว
@@ -443,7 +558,9 @@ app.post("/reset-password", otpLimiter, async (req, res) => {
   const { token, newPassword } = req.body;
 
   if (!token || !newPassword) {
-    return res.status(400).json({ message: "Token and new password are required" });
+    return res
+      .status(400)
+      .json({ message: "Token and new password are required" });
   }
 
   try {
@@ -535,18 +652,36 @@ app.post("/login", async (req, res) => {
 });
 
 // ลบ OTP ที่หมดอายุทุก 5 นาที
-setInterval(() => {
-  const deleteExpiredSql = `DELETE FROM otp_verifications WHERE expires_at < NOW()`;
-  connection.query(deleteExpiredSql, function (err, result) {
-    if (err) {
-      console.error("Error cleaning up expired OTPs:", err);
-    } else if (result.affectedRows > 0) {
-      console.log(`Cleaned up ${result.affectedRows} expired OTP(s)`);
-    }
-  });
-}, 5 * 60 * 1000);
+setInterval(
+  () => {
+    const deleteExpiredSql = `DELETE FROM otp_verifications WHERE expires_at < NOW()`;
+    connection.query(deleteExpiredSql, function (err, result) {
+      if (err) {
+        console.error("Error cleaning up expired OTPs:", err);
+      } else if (result.affectedRows > 0) {
+        console.log(`Cleaned up ${result.affectedRows} expired OTP(s)`);
+      }
+    });
+  },
+  5 * 60 * 1000,
+);
+
+app.delete('/portfolios/:id', verifyToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await connection.promise().query('DELETE FROM portfolios WHERE id = ?', [id]);
+
+    res.json({ success: true });
+  } catch(err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Delete Failed' })
+  }
+})
 
 app.listen(port, function () {
   console.log(`Server is running on port ${port}`);
-  console.log(`OTP expiration time: ${OTP_EXPIRATION_TIME / 1000 / 60} minutes`);
+  console.log(
+    `OTP expiration time: ${OTP_EXPIRATION_TIME / 1000 / 60} minutes`,
+  );
 });

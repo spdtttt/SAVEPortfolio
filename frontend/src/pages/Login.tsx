@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 
@@ -10,6 +10,14 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // เช็คว่ามี token หรือยัง ถ้ามีแล้วให้ไปหน้า profile
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/profile");
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

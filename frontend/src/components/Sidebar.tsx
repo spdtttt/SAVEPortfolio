@@ -17,7 +17,7 @@ const Sidebar = ({
     {
       id: "competition",
       name: "การแข่งขัน",
-      icon: "fas fa-th-large",
+      icon: "fas fa-trophy",
     },
     {
       id: "project",
