@@ -4,6 +4,7 @@ import DetailModal from "./DetailModal";
 import PDFThumbnail from "./PDFThumbnail";
 import { BarLoader } from "react-spinners";
 import handleDelete from "../../function/handleDelete";
+import { formatThaiDate } from "../utils/formatThaiDate";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -144,7 +145,7 @@ const CompetitionPage = ({
                         e.stopPropagation();
                         await handleDelete(portfolio.id, setLoading, token);
                       }}
-                      className="text-white cursor-pointer bg-red-600 hover:bg-red-700 transition-all duration-300 ease-in-out items-center justify-center flex px-2 rounded-xl"
+                      className="text-white hover:scale-108 hover:rotate-12 cursor-pointer bg-red-600 hover:bg-red-700 transition-all duration-300 ease-in-out items-center justify-center flex px-2 rounded-xl"
                     >
                       <i className="fas fa-trash"></i>
                     </div>
@@ -163,7 +164,8 @@ const CompetitionPage = ({
                   {/* Footer (อยู่ล่างสุดเสมอ) */}
                   <div className="mt-auto pt-4 flex justify-between items-center border-t border-white/10">
                     <span className="text-[0.8rem] text-[#94a3b8]">
-                      {portfolio.startDate} - {portfolio.endDate}
+                      {formatThaiDate(portfolio.startDate)} -{" "}
+                      {formatThaiDate(portfolio.endDate)}
                     </span>
 
                     <button
@@ -174,7 +176,7 @@ const CompetitionPage = ({
                       className="bg-transparent border-2 border-white/10 hover:border-[#6c63ff] hover:text-[#6c63ff] text-[#f8fafc] inline-flex items-center gap-2 py-[0.4rem] px-[0.8rem] rounded-[12px] font-semibold cursor-pointer text-[0.8rem] transition-all duration-300"
                     >
                       <i className="fas fa-download"></i>
-                      Download
+                      ดาวน์โหลด
                     </button>
                   </div>
                 </div>

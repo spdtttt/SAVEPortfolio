@@ -617,7 +617,7 @@ app.post("/register", async (req, res) => {
 
       res
         .status(201)
-        .json({ message: "User registered successfully", userId: userId });
+        .json({ message: "สมัครสมาชิกเรียบร้อย กรุณาเข้าสู่ระบบ", userId: userId });
     },
   );
 });

@@ -95,7 +95,7 @@ const AddPage = () => {
     if (!e.target.files) return;
 
     const selectedFiles = Array.from(e.target.files);
-    setFiles(selectedFiles);
+    setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
   };
 
   const handleReset = () => {
@@ -165,7 +165,7 @@ const AddPage = () => {
 
   return (
     <>
-      <div className="flex justify-start flex-col gap-5 pb-15">
+      <div className="flex justify-start flex-col gap-0 md:gap-5 pb-3 md:pb-15">
         <div className="flex flex-col gap-4">
           <h2 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold">
             เพิ่มผลงานใหม่ (Add New Work)
@@ -173,7 +173,7 @@ const AddPage = () => {
         </div>
 
         {/* Form */}
-        <div className="bg-[rgba(30,41,59,0.7)] backdrop-blur-[20px] border border-white/10 rounded-[24px] p-8 shadow-lg shadow-black/10">
+        <div className="p-4 md:bg-[rgba(30,41,59,0.7)] md:backdrop-blur-[20px] md:border md:border-white/10 md:rounded-[24px] md:p-8 md:shadow-lg md:shadow-black/10">
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">

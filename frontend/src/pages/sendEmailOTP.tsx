@@ -49,13 +49,13 @@ const SendEmailOTP = () => {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-12rem)] w-full items-center justify-center px-4">
+    <div className="flex min-h-[calc(100vh-12rem)] w-full mt-10 md:mt-0 md:items-center px-4">
       <div
-        className="relative w-full max-w-[450px] overflow-hidden rounded-3xl border border-white/10
-           bg-[rgba(30,41,59,0.7)] p-8 shadow-[0_8px_32px_rgba(0,0,0,0.3)]
-           backdrop-blur-[20px] font-[Prompt]"
+        className="relative w-full max-w-[600px] overflow-hidden p-0 md:p-6 font-[Prompt]
+           md:rounded-3xl md:border md:border-white/10 md:bg-[rgba(30,41,59,0.7)] 
+           md:p-8 md:shadow-[0_8px_32px_rgba(0,0,0,0.3)] md:backdrop-blur-[20px]"
       >
-        <div className="mb-8 text-center">
+        <div className="mb-8 text-start md:text-center">
           <h2 className="text-4xl font-semibold text-slate-50">
             กู้คืนรหัสผ่าน
           </h2>
