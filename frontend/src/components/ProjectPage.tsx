@@ -4,13 +4,11 @@ import DetailModal from "./DetailModal";
 import PDFThumbnail from "./PDFThumbnail";
 import { BarLoader } from "react-spinners";
 import handleDelete from "../../function/handleDelete";
-import type ActivityPage from "./ActivityPage";
 import { formatThaiDate } from "../utils/formatThaiDate";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const ProjectPage = ({
-  isAdd,
   setIsAdd,
   portfolios,
 }: {

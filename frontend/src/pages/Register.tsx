@@ -90,7 +90,7 @@ const Register = () => {
   return (
     <div className="flex min-h-[calc(100vh-12rem)] w-full items-center justify-center px-4">
       <div
-        className="relative w-full max-w-[600px] overflow-hidden p-0 md:p-6 font-[Prompt]
+        className="relative w-full max-w-[600px] overflow-hidden p-0 font-[Prompt]
            md:rounded-3xl md:border md:border-white/10 md:bg-[rgba(30,41,59,0.7)] 
            md:p-8 md:shadow-[0_8px_32px_rgba(0,0,0,0.3)] md:backdrop-blur-[20px]"
       >

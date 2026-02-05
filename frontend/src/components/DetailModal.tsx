@@ -109,7 +109,7 @@ const DetailModal = ({
                   return (
                     <div
                       key={index}
-                      className="w-full h-full flex-shrink-0 flex items-center justify-center min-h-[300px] md:min-h-[400px]"
+                      className="w-full h-full shrink-0 flex items-center justify-center min-h-[300px] md:min-h-[400px]"
                     >
                       {isPDF ? (
                         <PDFThumbnail url={fileUrl} />
