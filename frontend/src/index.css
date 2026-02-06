@@ -37,3 +37,7 @@
 .date-white::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }
+
+html {
+  overflow-y: scroll;
+}

@@ -47,7 +47,7 @@ const TopBar = () => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0f1a2e] border-b border-white/10">
-      <div className="mx-auto px-10 md:px-30 py-4 md:py-5 flex items-center justify-between">
+      <div className="py-5 mx-10 flex items-center justify-between">
         {/* Logo */}
         <div
           className="flex items-center space-x-2 cursor-pointer"
