@@ -89,7 +89,7 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-12rem)] w-full mt-10 md:mt-0 md:items-center px-4">
+    <div className="flex min-h-[calc(100vh-12rem)] w-full mt-10 md:mt-0 md:items-center px-4 justify-center">
       <div
         className="relative w-full max-w-[600px] overflow-hidden p-0 font-[Prompt]
            md:rounded-3xl md:border md:border-white/10 md:bg-[rgba(30,41,59,0.7)] 

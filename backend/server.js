@@ -38,12 +38,34 @@ const upload = multer({
 });
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3306;
 const JWT_SECRET = process.env.JWT_SECRET;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static files
 app.use("/uploads", express.static("uploads"));
+
+// Download API endpoint - handles CORS properly
+const path = require("path");
+const fs = require("fs");
+
+app.get("/download/:filename", (req, res) => {
+  const filename = decodeURIComponent(req.params.filename);
+  const filePath = path.join(__dirname, "uploads", filename);
+
+  // Security check - prevent directory traversal
+  if (!filePath.startsWith(path.join(__dirname, "uploads"))) {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ message: "File not found" });
+  }
+
+  res.download(filePath, filename);
+});
 
 const connection = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -615,9 +637,10 @@ app.post("/register", async (req, res) => {
 
       const userId = result.insertId;
 
-      res
-        .status(201)
-        .json({ message: "สมัครสมาชิกเรียบร้อย กรุณาเข้าสู่ระบบ", userId: userId });
+      res.status(201).json({
+        message: "สมัครสมาชิกเรียบร้อย กรุณาเข้าสู่ระบบ",
+        userId: userId,
+      });
     },
   );
 });
@@ -666,18 +689,24 @@ setInterval(
   5 * 60 * 1000,
 );
 
-app.delete('/portfolios/:id', verifyToken, async (req, res) => {
+app.delete("/portfolios/:id", verifyToken, async (req, res) => {
   const { id } = req.params;
 
   try {
-    await connection.promise().query('DELETE FROM portfolios WHERE id = ?', [id]);
+    await connection
+      .promise()
+      .query("DELETE FROM portfolios WHERE id = ?", [id]);
 
     res.json({ success: true });
-  } catch(err) {
+  } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: 'Delete Failed' })
+    res.status(500).json({ success: false, message: "Delete Failed" });
   }
-})
+});
+
+app.get("/", (req, res) => {
+  res.send("Hello ครับพวก!");
+});
 
 app.listen(port, function () {
   console.log(`Server is running on port ${port}`);

@@ -1,7 +1,6 @@
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import DetailModal from "./DetailModal";
-import PDFThumbnail from "./PDFThumbnail";
 import { BarLoader } from "react-spinners";
 import handleDelete from "../../function/handleDelete";
 import { formatThaiDate } from "../utils/formatThaiDate";
@@ -25,10 +24,13 @@ const CompetitionPage = ({
   const competitionPortfolios = portfolios.filter(
     (portfolio) => portfolio.type === "competition",
   );
+  competitionPortfolios.reverse();
 
   const handleDownloadAll = async (files: string[]) => {
     for (const file of files) {
-      const response = await fetch(`${API_URL}/uploads/${file}`);
+      const response = await fetch(
+        `${API_URL}/download/${encodeURIComponent(file)}`,
+      );
       const blob = await response.blob();
 
       const url = window.URL.createObjectURL(blob);
@@ -97,14 +99,14 @@ const CompetitionPage = ({
               >
                 {/* Thumbnail */}
                 {isPDF ? (
-                  <div className="w-full h-full md:h-[200px] object-cover">
-                    <PDFThumbnail url={fileUrl} />
+                  <div className="w-full h-[200px] shrink-0 bg-gray-600 flex items-center justify-center">
+                    <i className="fas fa-file-pdf text-gray-400 text-6xl"></i>
                   </div>
                 ) : (
                   <img
                     src={fileUrl}
                     alt={portfolio.title}
-                    className="w-full h-full md:h-[200px] object-cover"
+                    className="w-full h-[200px] object-cover"
                   />
                 )}
 

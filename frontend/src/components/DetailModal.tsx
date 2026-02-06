@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import PDFThumbnail from "./PDFThumbnail";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -34,7 +33,9 @@ const DetailModal = ({
     if (!portfolio.files?.length) return;
 
     for (const file of portfolio.files) {
-      const res = await fetch(`${API_URL}/uploads/${file}`);
+      const res = await fetch(
+        `${API_URL}/download/${encodeURIComponent(file)}`,
+      );
       const blob = await res.blob();
 
       const url = URL.createObjectURL(blob);
@@ -112,7 +113,9 @@ const DetailModal = ({
                       className="w-full h-full shrink-0 flex items-center justify-center min-h-[300px] md:min-h-[400px]"
                     >
                       {isPDF ? (
-                        <PDFThumbnail url={fileUrl} />
+                        <div className="w-full h-full bg-gray-600 flex items-center justify-center">
+                          <i className="fas fa-file-pdf text-gray-400 text-6xl"></i>
+                        </div>
                       ) : (
                         <img
                           src={fileUrl}

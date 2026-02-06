@@ -1,7 +1,6 @@
 const MobileMenu = ({
   page,
   setPage,
-  isAdd,
   setIsAdd,
 }: {
   page: string;
