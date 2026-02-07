@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -45,6 +47,35 @@ const Login = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onSuccess = async (credentialResponse: any) => {
+    try {
+      const decoded: any = jwtDecode(credentialResponse.credential!);
+
+      const response = await axios.post(`${API_URL}/google-login`, {
+        email: decoded.email,
+        name: decoded.name,
+        provider_id: decoded.sub,
+      });
+
+      localStorage.setItem("token", response.data.token);
+
+      Swal.fire({
+        icon: "success",
+        title: "เข้าสู่ระบบสำเร็จ",
+        text: `ยินดีต้อนรับคุณ ${response.data.username}`,
+      });
+
+      navigate("/profile");
+    } catch (err) {
+      console.error("Fail to Sign In with Google:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Google Login ล้มเหลว",
+        text: "ไม่สามารถเข้าสู่ระบบด้วย Google ได้",
+      });
     }
   };
 
@@ -110,7 +141,7 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="mt-6 border-t gap-3 font-medium border-white/10 pt-6 text-center text-slate-400 flex justify-center">
+        <div className="mt-6 border-t mb-4 gap-3 font-medium border-white/10 pt-6 text-center text-slate-400 flex justify-center">
           <p>ยังไม่มีบัญชี?</p>
           <p
             onClick={() => navigate("/register")}
@@ -119,6 +150,12 @@ const Login = () => {
             สมัครสมาชิก
           </p>
         </div>
+        <GoogleLogin
+          onSuccess={onSuccess}
+          onError={() => {
+            console.log("Login Failed");
+          }}
+        />
       </div>
     </div>
   );

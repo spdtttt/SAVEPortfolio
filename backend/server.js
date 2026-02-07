@@ -38,7 +38,8 @@ const upload = multer({
 });
 
 const app = express();
-const port = process.env.PORT || 3306;
+// const port = process.env.PORT || 3306;
+const port = 3000;
 const JWT_SECRET = process.env.JWT_SECRET;
 
 app.use(cors());
@@ -67,12 +68,19 @@ app.get("/download/:filename", (req, res) => {
   res.download(filePath, filename);
 });
 
+// const connection = mysql.createConnection({
+//   host: process.env.DB_HOST,
+//   user: process.env.DB_USER,
+//   password: process.env.DB_PASSWORD,
+//   database: process.env.DB_NAME,
+//   dateStrings: true,
+// });
+
 const connection = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  dateStrings: true,
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "saveportfolio",
 });
 
 const otpLimiter = rateLimit({
@@ -645,10 +653,66 @@ app.post("/register", async (req, res) => {
   );
 });
 
+// Google Login Endpoint
+app.post("/google-login", async (req, res) => {
+  const { email, name, provider_id } = req.body;
+  const sql = `SELECT * FROM users WHERE email = ?`;
+
+  connection.query(sql, [email], async (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Server error" });
+    }
+    if (result.length === 0) {
+      const sql = `INSERT INTO users (email, username, provider, provider_id) VALUES (?, ?, ?, ?)`;
+      connection.query(
+        sql,
+        [email, name, "google", provider_id],
+        function (err, result) {
+          if (err) {
+            if (err.code === "ER_DUP_ENTRY") {
+              return res
+                .status(409)
+                .json({ message: "Username already exists" });
+            }
+            return res.status(500).json({ message: "Database error" });
+          }
+
+          const userId = result.insertId;
+
+          const token = jwt.sign(
+            { id: userId, email: email, username: name },
+            JWT_SECRET,
+            { expiresIn: "3h" },
+          );
+
+          res.status(201).json({
+            message: "บันทึกบัญชี Google สำเร็จ",
+            token,
+            username: name
+          });
+        },
+      );
+    } else {
+      const user = result[0];
+      const token = jwt.sign(
+        { id: user.id, email: user.email, username: user.username },
+        JWT_SECRET,
+        { expiresIn: "3h" },
+      );
+
+      res.status(200).json({
+        message: "มีบัญชีอยู่แล้ว เข้าสู่ระบบสำเร็จ",
+        token,
+        username: user.username
+      });
+    }
+  });
+});
+
 // Login Endpoint
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  const sql = `SELECT * FROM users WHERE email = ?`;
+  const sql = `SELECT * FROM users WHERE email = ? AND provider = 'local'`;
 
   connection.query(sql, [email], async (err, result) => {
     if (err) {
