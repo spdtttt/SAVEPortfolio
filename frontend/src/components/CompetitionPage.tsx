@@ -26,24 +26,28 @@ const CompetitionPage = ({
   );
   competitionPortfolios.reverse();
 
-  const handleDownloadAll = async (files: string[]) => {
-    for (const file of files) {
-      const response = await fetch(
-        `${API_URL}/download/${encodeURIComponent(file)}`,
-      );
-      const blob = await response.blob();
+  const handleDownloadZip = async (portfolioId: number, files: string[]) => {
+    const response = await fetch(`${API_URL}/download-zip/${portfolioId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({ files }),
+    });
 
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = file;
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
 
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `portfolio-${portfolioId}.zip`;
 
-      window.URL.revokeObjectURL(url);
-    }
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    window.URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -172,7 +176,7 @@ const CompetitionPage = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDownloadAll(portfolio.files);
+                        handleDownloadZip(portfolio.id, portfolio.files);
                       }}
                       className="bg-transparent border-2 border-white/10 hover:border-[#6c63ff] hover:text-[#6c63ff] text-[#f8fafc] inline-flex items-center gap-2 py-[0.4rem] px-[0.8rem] rounded-[12px] font-semibold cursor-pointer text-[0.8rem] transition-all duration-300"
                     >

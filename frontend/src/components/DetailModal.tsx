@@ -29,26 +29,34 @@ const DetailModal = ({
     setCurrentIndex((prev) => (prev === totalFiles - 1 ? 0 : prev + 1));
   };
 
-  const handleDownloadAll = async () => {
+  const handleDownloadZip = async () => {
     if (!portfolio.files?.length) return;
 
-    for (const file of portfolio.files) {
-      const res = await fetch(
-        `${API_URL}/download/${encodeURIComponent(file)}`,
-      );
-      const blob = await res.blob();
+    const token = localStorage.getItem("token");
 
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = file;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+    const response = await fetch(`${API_URL}/download-zip/${portfolio.id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        files: portfolio.files,
+      }),
+    });
 
-      await new Promise((r) => setTimeout(r, 300));
-    }
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `portfolio-${portfolio.id}.zip`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -203,7 +211,7 @@ const DetailModal = ({
             </div>
 
             <button
-              onClick={handleDownloadAll}
+              onClick={handleDownloadZip}
               className="
                 mt-6 sm:mt-8
                 w-full

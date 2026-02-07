@@ -150,12 +150,14 @@ const Login = () => {
             สมัครสมาชิก
           </p>
         </div>
-        <GoogleLogin
-          onSuccess={onSuccess}
-          onError={() => {
-            console.log("Login Failed");
-          }}
-        />
+        <div className="flex justify-center items-center">
+          <GoogleLogin
+            onSuccess={onSuccess}
+            onError={() => {
+              console.log("Login Failed");
+            }}
+          />
+        </div>
       </div>
     </div>
   );

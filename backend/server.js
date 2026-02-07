@@ -7,6 +7,9 @@ const nodemailer = require("nodemailer");
 const rateLimit = require("express-rate-limit");
 const multer = require("multer");
 require("dotenv").config();
+const path = require("path");
+const fs = require("fs");
+const archiver = require("archiver");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -38,8 +41,7 @@ const upload = multer({
 });
 
 const app = express();
-// const port = process.env.PORT || 3306;
-const port = 3000;
+const port = process.env.PORT || 3306;
 const JWT_SECRET = process.env.JWT_SECRET;
 
 app.use(cors());
@@ -48,39 +50,55 @@ app.use(express.json());
 // Serve static files
 app.use("/uploads", express.static("uploads"));
 
-// Download API endpoint - handles CORS properly
-const path = require("path");
-const fs = require("fs");
+app.post("/download-zip/:portfolioId", verifyToken, async (req, res) => {
+  try {
+    const { files } = req.body;
 
-app.get("/download/:filename", (req, res) => {
-  const filename = decodeURIComponent(req.params.filename);
-  const filePath = path.join(__dirname, "uploads", filename);
+    if (!files || !Array.isArray(files) || files.length === 0) {
+      return res.status(400).json({ message: "No files provided" });
+    }
 
-  // Security check - prevent directory traversal
-  if (!filePath.startsWith(path.join(__dirname, "uploads"))) {
-    return res.status(403).json({ message: "Access denied" });
+    const zipName = `portfolio-${req.params.portfolioId}.zip`;
+
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${zipName}"`
+    );
+
+    const archive = archiver("zip", { zlib: { level: 9 } });
+
+    archive.on("error", (err) => {
+      console.error("Archive error:", err);
+      res.status(500).end();
+    });
+
+    archive.pipe(res);
+
+    for (const file of files) {
+      const safeFile = path.basename(file); // กัน ../
+      const filePath = path.join(__dirname, "uploads", safeFile);
+
+      if (fs.existsSync(filePath)) {
+        archive.file(filePath, { name: safeFile });
+      }
+    }
+
+    await archive.finalize();
+  } catch (err) {
+    console.error("ZIP download failed:", err);
+    if (!res.headersSent) {
+      res.status(500).json({ message: "ZIP download failed" });
+    }
   }
-
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ message: "File not found" });
-  }
-
-  res.download(filePath, filename);
 });
 
-// const connection = mysql.createConnection({
-//   host: process.env.DB_HOST,
-//   user: process.env.DB_USER,
-//   password: process.env.DB_PASSWORD,
-//   database: process.env.DB_NAME,
-//   dateStrings: true,
-// });
-
 const connection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "saveportfolio",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  dateStrings: true,
 });
 
 const otpLimiter = rateLimit({
