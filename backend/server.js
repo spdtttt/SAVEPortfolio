@@ -41,11 +41,62 @@ const upload = multer({
 });
 
 const app = express();
-const port = process.env.PORT || 3306;
+app.use(express.json());
+const port = process.env.PORT;
 const JWT_SECRET = process.env.JWT_SECRET;
 
-app.use(cors());
-app.use(express.json());
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      "https://saveportfolio.com",
+      "https://www.saveportfolio.com",
+    ];
+
+    // อนุญาตเฉพาะ origin ที่อยู่ใน whitelist
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200 // บาง legacy browsers (IE11) ต้องการ 200
+};
+
+app.use(cors(corsOptions));
+
+// เพิ่ม error handler สำหรับ CORS errors
+app.use((err, req, res, next) => {
+  if (err.message === "Not allowed by CORS") {
+    res.status(403).json({ message: "Access forbidden: Invalid origin" });
+  } else {
+    next(err);
+  }
+});
+
+// Middleware for verifying JWT
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({ message: "No token provided" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "Invalid token format" });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: "Invalid or expired token" });
+    }
+
+    req.user = user;
+    next();
+  });
+};
 
 // Serve static files
 app.use("/uploads", express.static("uploads"));
@@ -73,6 +124,7 @@ app.post("/download-zip/:portfolioId", verifyToken, async (req, res) => {
       res.status(500).end();
     });
 
+	 res.flushHeaders();
     archive.pipe(res);
 
     for (const file of files) {
@@ -108,24 +160,6 @@ const otpLimiter = rateLimit({
     message: "คุณพยายามมากเกินไป กรุณารอ 10 นาที",
   },
 });
-
-// Middleware for verifying JWT
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader.split(" ")[1];
-
-  if (token == null) {
-    return res.sendStatus(401);
-  }
-
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.sendStatus(403);
-    }
-    req.user = user;
-    next();
-  });
-};
 
 // Protected Profile Route
 app.get("/profile", verifyToken, (req, res) => {
@@ -775,13 +809,44 @@ app.delete("/portfolios/:id", verifyToken, async (req, res) => {
   const { id } = req.params;
 
   try {
+    // 1. ดึงรายชื่อไฟล์จาก portfolio_files
+    const [files] = await connection
+      .promise()
+      .query(
+        "SELECT file_name FROM portfolio_files WHERE portfolio_id = ?",
+        [id]
+      );
+
+    // 2. ลบไฟล์จริงใน /uploads
+    for (const row of files) {
+      const filePath = path.join(process.cwd(), "uploads", row.file_name);
+
+      fs.unlink(filePath, (err) => {
+        if (err) {
+          console.warn("Skip delete file:", row.file_name);
+        }
+      });
+    }
+
+    // 3. ลบไฟล์ออกจาก DB
     await connection
       .promise()
-      .query("DELETE FROM portfolios WHERE id = ?", [id]);
+      .query(
+        "DELETE FROM portfolio_files WHERE portfolio_id = ?",
+        [id]
+      );
+
+    // 4. ลบ portfolio
+    await connection
+      .promise()
+      .query(
+        "DELETE FROM portfolios WHERE id = ? AND user_id = ?",
+        [id, req.user.id]
+      );
 
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error("DELETE portfolio error:", err);
     res.status(500).json({ success: false, message: "Delete Failed" });
   }
 });
